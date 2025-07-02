@@ -4,14 +4,13 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.terminal.*;
-import com.googlecode.lanterna.terminal.swing.TerminalEmulatorDeviceConfiguration.CursorStyle;
 
 import java.io.IOException;
 
 public class Menu {
 
-  private static int lastMenuItemsX;
-  private static int lastMenuStartY;
+  private static int iconX;
+  private static int MenuStartY;
   private static final int MENU_ITEM_INCREMENT = 2;
   private static final String[] ITEMS = {
       "Calculate recipe", "View existing recipes", "New recipe",
@@ -88,7 +87,7 @@ public class Menu {
   }
 
   // Center text vertically at the top third of the terminal
-  public static int topThirdY(int contentHeight) {
+  public static int topThird(int contentHeight) {
     return Math.max(0, (getTerminalHeight() - contentHeight) / 3);
   }
 
@@ -178,18 +177,18 @@ public class Menu {
         && keyStroke.getKeyType() != KeyType.Escape);
   }
 
-  // Enhanced menu with centering
+  // Main menu
   public static void showMenu() throws IOException {
     clear();
     updateTerminalSize(); // Update size in case terminal was resized
-    Menu menu = new Menu();
+    Menu menu = new Menu(); // Allows access to menu borders and decorations
 
     // Menu items
     String[] Items = { "Calculate recipe", "View existing recipes", "New recipe", "Edit recipe", "Delete recipe",
         "Quit" };
 
     // First menu item
-    String firstMenuItem = Items[0];
+    String firstMenuItem = ITEMS[0];
 
     // ASCII Art Title - split into lines for easier centering
     String[] titleLines = {
@@ -207,7 +206,7 @@ public class Menu {
     // Calculate starting Y position to center the entire menu vertically
     int menuHeight = titleLines.length + 10; // Title + spacing + menu items + prompt
     //
-    int startY = Math.max(1, topThirdY(menuHeight) - 2);
+    int startY = Math.max(1, topThird(menuHeight) - 2);
 
     // Menu items - centered
     int menuStartY = startY + titleLines.length + 1;
@@ -215,8 +214,11 @@ public class Menu {
     int menuItemsX = firstThirdX(firstMenuItem);
 
     // For Current Menu Items X position
-    lastMenuItemsX = menuItemsX;
-    lastMenuStartY = menuStartY;
+    // Gap between menu items and icons
+    int iconIncrement = 3;
+    // Icon X plane is menuItemsX -3
+    iconX = menuItemsX - iconIncrement;
+    MenuStartY = menuStartY;
 
     // Menu border width based on the first menu item length
     double menuWidthFactor = firstMenuItem.length() * 4.35;
@@ -294,14 +296,14 @@ public class Menu {
 
     // Menu Items increment by 2 y to add a space between each item
     int menuItemIncrement = 2;
-    int numItems = Items.length;
+    int numItems = ITEMS.length;
     int itemY = menuStartY;
 
     for (int i = 0; i <= numItems - 1; i++) {
       // Calculate the Y position for each item
       itemY = menuStartY + 1 + i * menuItemIncrement;
       TextColor.ANSI color = colors[i % colors.length]; // Cycle through colors
-      printAt(menuItemsX, itemY, Items[i], color);
+      printAt(menuItemsX, itemY, ITEMS[i], color);
     }
 
     // Centered yellow prompt
@@ -314,9 +316,7 @@ public class Menu {
     printAt(getTerminalWidth() - sizeInfo.length() - 1, getTerminalHeight() - 1, sizeInfo, TextColor.ANSI.WHITE);
 
     // Add unicode icons for funzies
-    // Icon X position
-    int iconX = menuItemsX - 3;
-
+    // IconX position is already declared and assigned
     // Icon 1- Calculate
     int icon1Y = menuStartY + 1;
     // Icon 2 - View
@@ -338,7 +338,7 @@ public class Menu {
     printAt(iconX, icon6Y, "⏻", TextColor.ANSI.MAGENTA);
 
     // Set the cursor on the first menu item
-    terminal.setCursorPosition(menuItemsX - 3, menuStartY + 1);
+    terminal.setCursorPosition(iconX, menuStartY + 1);
     // Add key
     int keyX = menuBorderLX + menuWidth - 3;
     // Keys
@@ -383,7 +383,7 @@ public class Menu {
     // Calculate positions for centered table
     int tableWidth = 45;
     int startX = centerX(tableWidth);
-    int startY = topThirdY(10) - 2;
+    int startY = topThird(10) - 2;
 
     // Header
     printAt(startX, startY, "Your Recipes", TextColor.ANSI.CYAN);
@@ -444,7 +444,7 @@ public class Menu {
           // 2.2a) Hot-keys (launch feature immediately)
           if (ch == 'c' || ch == 'v' || ch == 'n' ||
               ch == 'e' || ch == 'd' || ch == 'q') {
-            handleAction(ch);
+            chooseItem(ch);
             if (ch == 'q')
               return; // exit on quit
             showMenu(); // redraw menu after action
@@ -484,7 +484,7 @@ public class Menu {
         // 2.4) Enter on highlighted item
         if (kt == KeyType.Enter) {
           char choice = ITEM_KEYS[selected];
-          handleAction(choice);
+          chooseItem(choice);
           if (choice == 'q')
             return;
           showMenu();
@@ -500,16 +500,17 @@ public class Menu {
     }
   }
 
-  /** Moves the hardware cursor to the “icon” column for the given menu index. */
+  // Moves the cursor to the icon column for the given menu index.
   private static void repositionCursor(int selected) throws IOException {
     terminal.setCursorPosition(
-        lastMenuItemsX - 3,
-        lastMenuStartY + 1 + selected * MENU_ITEM_INCREMENT);
+        iconX, // Curosr starts at iconX position
+        MenuStartY + 1 + selected * MENU_ITEM_INCREMENT);
     terminal.flush();
   }
 
-  /** Runs the chosen feature, then waits for Enter before returning. */
-  private static void handleAction(char choice) throws IOException {
+  // Runs the chosen method
+  // then waits for Enter or Escape before returning to main menu.
+  private static void chooseItem(char choice) throws IOException {
     switch (choice) {
       case 'c':
         showStatusExample();
