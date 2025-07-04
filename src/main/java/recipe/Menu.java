@@ -9,15 +9,21 @@ import java.io.IOException;
 
 public class Menu {
 
+  // The X plane for the icons
   private static int iconX;
+  // Where the top bar of the ITEM menu starts
+  // Menu item 1 is MenuStartY + 1
   private static int MenuStartY;
+  // The space between each menu item
   private static final int MENU_ITEM_INCREMENT = 2;
+  // The list of all items
   private static final String[] ITEMS = {
       "Calculate recipe", "View existing recipes", "New recipe",
       "Edit recipe", "Delete recipe", "Quit"
   };
-
+  // c is for 'Calculate recipe', v is for 'View estisting recipes' and so on
   private static final char[] ITEM_KEYS = { 'c', 'v', 'n', 'e', 'd', 'q' };
+
   // Borders and decorations
   String hbar = "═";
   String vbar = "║";
@@ -38,22 +44,32 @@ public class Menu {
 
   private static Terminal terminal;
   private static TerminalSize terminalSize;
+  private static TerminalSize previousSize; // Track previous size for terminal resize detection.
 
   public static void initTerminal() throws IOException {
     DefaultTerminalFactory factory = new DefaultTerminalFactory();
 
     // Try to maximize the terminal window
-    factory.setInitialTerminalSize(new TerminalSize(120, 40)); // Fallback size
+    factory.setInitialTerminalSize(new TerminalSize(98, 24)); // Fallback size
 
     terminal = factory.createTerminal();
     terminal.enterPrivateMode();
 
     // Get actual terminal size after initialization
     updateTerminalSize();
+    previousSize = terminalSize;
   }
 
   public static void updateTerminalSize() throws IOException {
     terminalSize = terminal.getTerminalSize();
+  }
+
+  // Method to check if terminal size changed
+  private static boolean hasTerminalSizeChanged() {
+    if (previousSize == null)
+      return true;
+    return terminalSize.getColumns() != previousSize.getColumns() ||
+        terminalSize.getRows() != previousSize.getRows();
   }
 
   public static void closeTerminal() throws IOException {
@@ -63,7 +79,7 @@ public class Menu {
 
   // Get terminal width
   public static int getTerminalWidth() {
-    return terminalSize != null ? terminalSize.getColumns() : 80;
+    return terminalSize != null ? terminalSize.getColumns() : 98;
   }
 
   // Get terminal height
@@ -87,7 +103,7 @@ public class Menu {
   }
 
   // Center text vertically at the top third of the terminal
-  public static int topThird(int contentHeight) {
+  public static int topThirdY(int contentHeight) {
     return Math.max(0, (getTerminalHeight() - contentHeight) / 3);
   }
 
@@ -177,39 +193,68 @@ public class Menu {
         && keyStroke.getKeyType() != KeyType.Escape);
   }
 
+  // New method that waits for enter while handling resizes with redraw callback
+  private static void waitForEnterWithResize(Runnable redrawCallback) throws IOException {
+    KeyStroke keyStroke;
+    TerminalSize currentSize = terminalSize;
+
+    do {
+      updateTerminalSize();
+      if (currentSize.getColumns() != terminalSize.getColumns() ||
+          currentSize.getRows() != terminalSize.getRows()) {
+        // Terminal was resized - redraw
+        redrawCallback.run();
+        currentSize = terminalSize;
+      }
+      keyStroke = terminal.readInput();
+    } while (keyStroke.getKeyType() != KeyType.Enter
+        && keyStroke.getKeyType() != KeyType.Escape);
+  }
+
   // Main menu
   public static void showMenu() throws IOException {
     clear();
     updateTerminalSize(); // Update size in case terminal was resized
     Menu menu = new Menu(); // Allows access to menu borders and decorations
 
-    // Menu items
-    String[] Items = { "Calculate recipe", "View existing recipes", "New recipe", "Edit recipe", "Delete recipe",
-        "Quit" };
-
     // First menu item
     String firstMenuItem = ITEMS[0];
 
     // ASCII Art Title - split into lines for easier centering
+
     String[] titleLines = {
         "██████╗ ███████╗ ██████╗██╗██████╗ ███████╗       ██████╗ █████╗ ██╗",
         "██╔══██╗██╔════╝██╔════╝██║██╔══██╗██╔════╝      ██╔════╝██╔══██╗██║",
         "██████╔╝█████╗  ██║     ██║██████╔╝█████╗  █████╗██║     ███████║██║",
         "██╔══██╗██╔══╝  ██║     ██║██╔═══╝ ██╔══╝  ╚════╝██║     ██╔══██║██║",
-        "\s\s\s\s██║  ██║███████╗╚██████╗██║██║     ███████╗      ╚██████╗██║  ██║███████╗",
-        "\s\s\s ╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚══════╝       ╚═════╝╚═╝  ╚═╝╚══════╝"
+        "██║  ██║███████╗╚██████╗██║██║     ███████╗      ╚██████╗██║  ██║███████╗",
+        "╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚══════╝       ╚═════╝╚═╝  ╚═╝╚══════╝"
     };
+
     // For 3D Effect on second line
     // This piece of the line is to be cyan while the rest is yellow
     String secondLineBars = menu.hbar.repeat(6);
+    /*
+     * String[] titleLines = {
+     * "▄▖    ▘      ▄▖  ▜",
+     * "▙▘█▌▛▘▌▛▌█▌  ▌ ▀▌▐",
+     * "▌▌▙▖▙▖▌▙▌▙▖  ▙▖█▌▐",
+     * "▌"
+     * };
+     */
 
     // Calculate starting Y position to center the entire menu vertically
-    int menuHeight = titleLines.length + 10; // Title + spacing + menu items + prompt
+    // top padding is 1/5th height of terminal
+    int topPaddingFactor = 5;
+    int topPadding = getTerminalHeight() / topPaddingFactor;
+    // int menuHeight = titleLines.length + topPadding; // Title + spacing + menu
+    // items + prompt
     //
-    int startY = Math.max(1, topThird(menuHeight) - 2);
+    // int startY = Math.max(1, topThirdY(menuHeight));
+    int startY = topPadding;
 
     // Menu items - centered
-    int menuStartY = startY + titleLines.length + 1;
+    MenuStartY = startY + titleLines.length + 1;
     // X position for all items will be based on the first item
     int menuItemsX = firstThirdX(firstMenuItem);
 
@@ -218,72 +263,121 @@ public class Menu {
     int iconIncrement = 3;
     // Icon X plane is menuItemsX -3
     iconX = menuItemsX - iconIncrement;
-    MenuStartY = menuStartY;
 
     // Menu border width based on the first menu item length
-    double menuWidthFactor = firstMenuItem.length() * 4.35;
+    // double menuWidthFactor = firstMenuItem.length() * 4.35;
     // Cast MenuWidthFactor to int
-    int menuWidth = (int) menuWidthFactor;
+    // int menuWidth = (int) menuWidthFactor;
     // Menu border Left X position
-    int menuBorderLX = menuItemsX - (menuWidth / 8);
+    //
+    int menuBorderLX = iconX - 5;
+    int maxTitleLine = titleLines[0].length();
     // Menu border Right X position
-    int menuBorderRX = menuBorderLX + (menuWidth) + 5;
+    for (int i = 1; i <= titleLines.length - 2; i++) {
+      if (titleLines[i].length() > titleLines[i - 1].length()) {
+        maxTitleLine = titleLines[i].length();
+      }
+    }
+    // Add one to maxTitleLine so the border doesn't overlap with the title.
+    maxTitleLine++;
+    int menuBorderRX;
+    boolean isTitleBiggerThanFrame;
+    if (menuBorderLX + maxTitleLine > menuBorderLX + (ITEMS[0].length() * 4)) {
+      isTitleBiggerThanFrame = true;
+    } else {
+      isTitleBiggerThanFrame = false;
+    }
+    // Define menuBorderRX based on whether maxTitleLine is bigger than Menu Item 1
+    // * 4 (taking the larger)
+    if (isTitleBiggerThanFrame) {
+      menuBorderRX = menuBorderLX + maxTitleLine;
+    } else {
+      menuBorderRX = menuBorderLX + (ITEMS[0].length() * 4);
+    }
+
+    // menu width is the space between the left and right border
+    int menuWidth = menuBorderRX - menuBorderLX;
+
+    // Tippy top TOP border frame
+    // printAt(menuBorderLX, startY + 1, menu.topLeftBar +
+    // menu.hbar.repeat(menuWidth - 3) + menu.topRightBar,
+    // TextColor.ANSI.CYAN_BRIGHT);
 
     // Top Border Frame for Menu Items
-    printAt(menuBorderLX, menuStartY - 1, menu.topRightBar + menu.hbar.repeat(menuWidth + 4) + menu.topRightBar,
+    printAt(menuBorderLX, MenuStartY - 1, menu.topRightBar + menu.hbar.repeat(menuWidth - 1) + menu.topRightBar,
         TextColor.ANSI.CYAN_BRIGHT);
 
     // Left side Border
     for (int i = 0; i <= 12; i++) {
-      printAt(menuBorderLX, menuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
+      printAt(menuBorderLX, MenuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
     }
 
     // Right side Border
     for (int i = 0; i <= 12; i++) {
-      printAt(menuBorderRX, menuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
+      printAt(menuBorderRX, MenuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
     }
 
     // Bottom Border Frame for Menu Items
-    printAt(menuBorderLX, menuStartY + 13, menu.bottomLeftBar + menu.hbar.repeat(menuWidth + 4) + menu.bottomRightBar,
+    int menuBorderBottomY = MenuStartY + 1 + ((ITEMS.length) * MENU_ITEM_INCREMENT);
+    printAt(menuBorderLX, menuBorderBottomY,
+        menu.bottomLeftBar + menu.hbar.repeat(menuWidth - 1) + menu.bottomRightBar,
         TextColor.ANSI.CYAN_BRIGHT);
 
-    // Tippy top frame for Header Border RIGHT
+    // Tippy top frame VERTICAL for Header Border RIGHT
     for (int i = -1; i >= -5; i--) {
-      printAt(menuBorderRX, menuStartY, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
+      printAt(menuBorderRX, MenuStartY, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
     }
 
-    // Top Border Frame for Menu Items
-    printAt(menuBorderLX, menuStartY - 6, menu.topLeftBar + menu.hbar.repeat(menuWidth - 2) + menu.topRightBar,
+    // Tippy top border frame HORIZONTAL
+    printAt(menuBorderLX, startY + 1,
+        menu.topLeftBar + menu.hbar.repeat(menuWidth - 1) + menu.topRightBar,
         TextColor.ANSI.CYAN_BRIGHT);
 
-    // Draw the title ASCII art centered
+    // Tippy top frame for Header Border LEFT
+    int tippyTopBorderAdj = 2;
+    for (int i = 0; i <= titleLines.length; i++) {
+      printAt(menuBorderLX, startY + tippyTopBorderAdj + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
+    }
+    // Tippy top frame for Header Border RIGHT
+    for (int i = 0; i <= titleLines.length; i++) {
+      printAt(menuBorderRX, startY + tippyTopBorderAdj + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
+    }
+
+    // Draw the title ASCII art justified left or centered
+    int y;
+    int titleStartX;
+    if (isTitleBiggerThanFrame) {
+      titleStartX = menuBorderLX + 2; // Offset from left menu border
+    } else {
+      titleStartX = menuBorderLX + ((menuWidth / 2) - (maxTitleLine / 2));
+    }
     for (int i = 0; i < titleLines.length; i++) {
-      int y = startY + i;
-
+      y = startY + i;
       // always draw the yellow ASCII text
-      printCentered(y, titleLines[i], TextColor.ANSI.YELLOW);
-
+      printAt(titleStartX, y, titleLines[i], TextColor.ANSI.YELLOW);
       // if it's the second line, add the cyan overlay
       if (i == 1) {
-        int x = centerX(titleLines[i]) + 43; // hard-coded offset
+        // Find the position of the end of the 'E' on the second line.
+        int x = titleStartX + 43; // hard-coded offset- It's a magic number forgive me.
         printAt(x, y, secondLineBars, TextColor.ANSI.CYAN_BRIGHT);
       }
     }
-    // Tippy top around the Title Right
-    printAt(menuBorderLX + 70, startY + 1, menu.hbar.repeat(4) + menu.topRightBar, TextColor.ANSI.CYAN_BRIGHT);
 
-    // Rest of tippy top RIGHT
-    for (int i = -1; i >= -5; i--) {
-      if (i == -2 || i == -3) {
-        continue;
-      }
-      printAt(menuBorderRX, menuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
-    }
+    // Tippy top around the Title Right horizontal + corner
+    // printAt(menuBorderLX + menuWidth - 4, startY + 1, menu.hbar.repeat(4) +
+    // menu.topRightBar,
+    // TextColor.ANSI.CYAN_BRIGHT);
 
-    // Tippy top frame for Header Border LEFT
-    for (int i = -1; i >= -5; i--) {
-      printAt(menuBorderLX, menuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
-    }
+    // Rest of tippy top RIGHT vertical
+    /*
+     * for (int i = -1; i >= MenuStartY - startY; i--) {
+     * if (i == -2 || i == -3) {
+     * continue;
+     * }
+     * printAt(menuBorderRX, MenuStartY + i, menu.vbar, TextColor.ANSI.CYAN_BRIGHT);
+     * }
+     */
+
     // Array of colors corresponding to each menu item
     TextColor.ANSI[] colors = {
         TextColor.ANSI.YELLOW,
@@ -297,19 +391,21 @@ public class Menu {
     // Menu Items increment by 2 y to add a space between each item
     int menuItemIncrement = 2;
     int numItems = ITEMS.length;
-    int itemY = menuStartY;
+    int itemY = MenuStartY;
 
     for (int i = 0; i <= numItems - 1; i++) {
       // Calculate the Y position for each item
-      itemY = menuStartY + 1 + i * menuItemIncrement;
+      itemY = MenuStartY + 1 + i * menuItemIncrement;
       TextColor.ANSI color = colors[i % colors.length]; // Cycle through colors
       printAt(menuItemsX, itemY, ITEMS[i], color);
     }
 
     // Centered yellow prompt
-    int centerMessageY = menuStartY + 13;
-    printCentered(centerMessageY, "\sPress a key for your choice: ", TextColor.ANSI.YELLOW);
-    printCentered(centerMessageY + 1, "OR Press ENTER on your choice ", TextColor.ANSI.YELLOW);
+    String prompt = "\sPress a key for your choice: ";
+    int promptLength = prompt.length();
+    int promptX = menuBorderLX + (menuWidth / 2) - (promptLength / 2);
+    printAt(promptX, menuBorderBottomY, prompt, TextColor.ANSI.YELLOW);
+    printAt(promptX, menuBorderBottomY + 1, "OR Press ENTER on your choice ", TextColor.ANSI.YELLOW);
 
     // Display terminal size info in bottom corner for debugging reasons
     String sizeInfo = String.format("Terminal: %dx%d", getTerminalWidth(), getTerminalHeight());
@@ -317,40 +413,33 @@ public class Menu {
 
     // Add unicode icons for funzies
     // IconX position is already declared and assigned
-    // Icon 1- Calculate
-    int icon1Y = menuStartY + 1;
-    // Icon 2 - View
-    int icon2Y = menuStartY + 3;
-    // Icon 3 - Add Recipe
-    int icon3Y = menuStartY + 5;
-    // Icon 4 - Edit Recipe
-    int icon4Y = menuStartY + 7;
-    // Icon 5 - Delete Recipe
-    int icon5Y = menuStartY + 9;
-    // Icon 6 - Quit
-    int icon6Y = menuStartY + 11;
-
-    printAt(iconX, icon1Y, "∑", TextColor.ANSI.YELLOW);
-    printAt(iconX, icon2Y, "☰", TextColor.ANSI.BLUE);
-    printAt(iconX, icon3Y, "✚", TextColor.ANSI.GREEN);
-    printAt(iconX, icon4Y, "✎", TextColor.ANSI.CYAN);
-    printAt(iconX, icon5Y, "✖", TextColor.ANSI.RED);
-    printAt(iconX, icon6Y, "⏻", TextColor.ANSI.MAGENTA);
+    int[] iconY = new int[ITEMS.length];
+    for (int i = 0; i < ITEMS.length; i++) {
+      iconY[i] = MenuStartY + 1 + (i * 2);
+    }
+    printAt(iconX, iconY[0], "∑", TextColor.ANSI.YELLOW);
+    printAt(iconX, iconY[1], "☰", TextColor.ANSI.BLUE);
+    printAt(iconX, iconY[2], "✚", TextColor.ANSI.GREEN);
+    printAt(iconX, iconY[3], "✎", TextColor.ANSI.CYAN);
+    printAt(iconX, iconY[4], "✖", TextColor.ANSI.RED);
+    printAt(iconX, iconY[5], "⏻", TextColor.ANSI.MAGENTA);
 
     // Set the cursor on the first menu item
-    terminal.setCursorPosition(iconX, menuStartY + 1);
+    terminal.setCursorPosition(iconX, MenuStartY + 1);
     // Add key
-    int keyX = menuBorderLX + menuWidth - 3;
+    // Padding from Right Menu Border
+    int keyPadding = 7;
+    int keyX = menuBorderLX + menuWidth - keyPadding;
     // Keys
-    printAt(keyX, menuStartY + 1, "c", TextColor.ANSI.YELLOW);
-    printAt(keyX, menuStartY + 3, "v", TextColor.ANSI.BLUE);
-    printAt(keyX, menuStartY + 5, "n", TextColor.ANSI.GREEN);
-    printAt(keyX, menuStartY + 7, "e", TextColor.ANSI.CYAN);
-    printAt(keyX, menuStartY + 9, "d", TextColor.ANSI.RED);
-    printAt(keyX, menuStartY + 11, "q", TextColor.ANSI.MAGENTA);
+    printAt(keyX, iconY[0], "c", TextColor.ANSI.YELLOW);
+    printAt(keyX, iconY[1], "v", TextColor.ANSI.BLUE);
+    printAt(keyX, iconY[2], "n", TextColor.ANSI.GREEN);
+    printAt(keyX, iconY[3], "e", TextColor.ANSI.CYAN);
+    printAt(keyX, iconY[4], "d", TextColor.ANSI.RED);
+    printAt(keyX, iconY[5], "q", TextColor.ANSI.MAGENTA);
 
     // Set the cursor on the first menu item
-    terminal.setCursorPosition(iconX, icon1Y);
+    terminal.setCursorPosition(iconX, iconY[0]);
     terminal.flush();
 
     resetColors();
@@ -383,7 +472,7 @@ public class Menu {
     // Calculate positions for centered table
     int tableWidth = 45;
     int startX = centerX(tableWidth);
-    int startY = topThird(10) - 2;
+    int startY = topThirdY(10) - 2;
 
     // Header
     printAt(startX, startY, "Your Recipes", TextColor.ANSI.CYAN);
@@ -417,38 +506,45 @@ public class Menu {
   public static void main(String[] args) throws IOException {
     initTerminal();
     try {
-      // 1) Draw once…
+      // Draw menu once…
       showMenu();
       terminal.setCursorVisible(true);
 
+      // selected is place of cursor in relation to Menu Items
       int selected = 0;
+      // n = number of Menu Items
       int n = ITEMS.length;
       repositionCursor(selected);
 
-      // 2) …then loop forever, only moving cursor or firing actions
+      // …then loop forever, only moving cursor or firing actions
       while (true) {
+        updateTerminalSize();
+        if (hasTerminalSizeChanged()) {
+          showMenu();
+          repositionCursor(selected);
+          previousSize = terminalSize;
+        }
         KeyStroke key = readKey();
         KeyType kt = key.getKeyType();
         Character ch = key.getCharacter(); // may be null
 
-        // 2.1) Quit on ESC or Ctrl-C
+        // Quit on ESC or Ctrl-C
         if (kt == KeyType.Escape ||
             (kt == KeyType.Character && key.isCtrlDown() && ch != null && ch == 'c')) {
           break;
         }
 
-        // 2.2) If it's a printable character…
+        // If it's a printable character…
         if (kt == KeyType.Character && ch != null) {
           ch = Character.toLowerCase(ch);
 
-          // 2.2a) Hot-keys (launch feature immediately)
+          // Hot-keys (launch feature immediately)
           if (ch == 'c' || ch == 'v' || ch == 'n' ||
               ch == 'e' || ch == 'd' || ch == 'q') {
             chooseItem(ch);
             if (ch == 'q')
               return; // exit on quit
             showMenu(); // redraw menu after action
-            selected = 0;
             repositionCursor(selected);
             continue;
           }
@@ -469,7 +565,7 @@ public class Menu {
           continue;
         }
 
-        // 2.3) Arrow-key navigation
+        // Arrow-key navigation
         if (kt == KeyType.ArrowDown) {
           selected = (selected + 1) % n;
           repositionCursor(selected);
@@ -481,14 +577,13 @@ public class Menu {
           continue;
         }
 
-        // 2.4) Enter on highlighted item
+        // Enter on highlighted item
         if (kt == KeyType.Enter) {
           char choice = ITEM_KEYS[selected];
           chooseItem(choice);
           if (choice == 'q')
             return;
           showMenu();
-          selected = 0;
           repositionCursor(selected);
           continue;
         }

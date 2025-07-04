@@ -56,7 +56,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <mainClass>recipe.Menu</mainClass>
+                    <mainClass>recipe.Main</mainClass>
                 </configuration>
             </plugin>
 
