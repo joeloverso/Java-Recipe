@@ -1,2 +1,6 @@
-recipe/Menu.class
+recipe/MenuModel.class
+recipe/MenuApplication.class
+recipe/MenuController.class
+recipe/Terminal.class
+recipe/MenuRenderer.class
 recipe/Main.class

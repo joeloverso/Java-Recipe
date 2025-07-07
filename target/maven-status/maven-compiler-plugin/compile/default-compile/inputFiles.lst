@@ -1,2 +1,13 @@
-/Users/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Main.java
-/Users/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Menu.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Calculate-recipe.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Delete-recipe.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Edit-recipe.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Main.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/MenuApplication.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/MenuController.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/MenuModel.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/MenuRenderer.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Menulayout.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/New-recipe.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/Terminal.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/View-recipe.java
+/home/josephloverso/Code/Java/Recipe-rewrite/src/main/java/recipe/src/main/java/recipe/Menu.java
