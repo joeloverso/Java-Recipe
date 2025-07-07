@@ -65,6 +65,12 @@ public class MenuModel {
     return smallTerminal ? smallTitleLines : titleLines;
   }
 
+  public int getSmallTitleLinesHeight() {
+    int smallTitleLinesHeight = smallTitleLines.length;
+    return smallTitleLinesHeight;
+
+  }
+
   public int getSelectedIndex() {
     return selectedIndex;
   }

@@ -9,6 +9,7 @@ public class MenuRenderer {
 
   private static final int MENU_ITEM_INCREMENT = 2;
   private static final int MIN_TERMINAL_WIDTH = 63;
+  private static final int MIN_TERMINAL_HEIGHT = 27;
 
   private final String hbar = "═";
   private final String vbar = "║";
@@ -19,10 +20,29 @@ public class MenuRenderer {
   private final String bottomLeftBar = "╚";
   private final String bottomRightBar = "╝";
 
-  private int iconX;
+  // Y variables
+  private boolean shortTerminal;
+  private int topPadding;
+  private int startY;
   private int menuStartY;
   private int menuBorderLX;
+
+  // Y padding variables
+  int tippyTopBorderAdj = 2;
+
+  // X variables
+  private boolean skinnyTerminal;
   private int menuBorderRX;
+  private int iconX;
+  private int menuItemsX;
+
+  // X padding variables
+  private int borderIconPadding = 5;
+  // Icon padding from MenuItems X
+  int iconMenuItemPadding = 3;
+  // Padding from MenuItem to border
+  int menuItemBorderPadding = 8;
+  // Miscellanious
   private int menuWidth;
 
   public MenuRenderer(Terminal terminal, MenuModel model) {
@@ -44,55 +64,76 @@ public class MenuRenderer {
     terminal.resetColors();
   }
 
-  private void calculateLayout() {
-    int menuItemsX;
-    boolean smallTerminal = false;
-    String firstMenuItem = model.getItems()[0];
-    int topPadding = terminal.getHeight() / 5;
-    int startY = topPadding;
-    int borderPadding = 5;
-    int iconPadding = 3;
+  private boolean isTerminalSkinny() {
+    skinnyTerminal = false;
+    if (terminal.getWidth() < MIN_TERMINAL_WIDTH) {
+      skinnyTerminal = true;
+    }
+    return skinnyTerminal;
+  }
+
+  private boolean isTerminalShort() {
+    shortTerminal = false;
+    if (terminal.getHeight() < MIN_TERMINAL_HEIGHT) {
+      shortTerminal = true;
+    }
+    return shortTerminal;
+  }
+
+  private int getTopPadding(boolean shortTerminal) {
+    if (shortTerminal) {
+      topPadding = 2;
+    } else {
+      topPadding = terminal.getHeight() / 5;
+    }
+    return topPadding;
+  }
+
+  private int getTitleLinesMaxLength() {
     String[] titleLines = model.getTitleLines(terminal.getWidth() < MIN_TERMINAL_WIDTH);
-    menuStartY = startY + titleLines.length + 1;
-    int menuItemPadding = 8;
-    // Calculate max title line length
     int maxTitleLine = titleLines[0].length();
     for (int i = 1; i < titleLines.length; i++) {
       if (titleLines[i].length() > maxTitleLine) {
         maxTitleLine = titleLines[i].length();
       }
-      maxTitleLine++;
     }
-    if (terminal.getWidth() < MIN_TERMINAL_WIDTH) {
-      smallTerminal = true;
-    }
+    maxTitleLine++;
+    return maxTitleLine;
+  }
+
+  private void calculateLayout() {
+    boolean skinnyTerminal = isTerminalSkinny();
+    boolean shortTerminal = isTerminalShort();
+    topPadding = getTopPadding(shortTerminal);
+    startY = topPadding;
+    String[] titleLines = model.getTitleLines(terminal.getWidth() < MIN_TERMINAL_WIDTH);
+    menuStartY = startY + titleLines.length + 1;
+    // Calculate max title line length
+    int maxTitleLine = getTitleLinesMaxLength();
     ;
-    if (smallTerminal) {
-      menuItemsX = menuBorderLX + menuItemPadding;
-      menuBorderLX = Math.max(1, iconX - borderPadding);
-      menuBorderRX = menuBorderLX + model.getItemMaxLength() + menuItemPadding * 2;
-      iconX = menuItemsX - iconPadding;
+    // Set X values
+    if (skinnyTerminal) {
+      int borderTerminalPadding = 2;
+      menuBorderLX = borderTerminalPadding;
+      menuBorderRX = terminal.getWidth() - borderTerminalPadding;
+      menuItemsX = menuBorderLX + menuItemBorderPadding;
+      iconX = menuItemsX - iconMenuItemPadding;
     } else {
       menuBorderLX = centerX(maxTitleLine);
       menuBorderRX = menuBorderLX + maxTitleLine;
-      iconX = menuBorderLX + borderPadding;
-      menuItemsX = iconX + iconPadding;
+      iconX = menuBorderLX + borderIconPadding;
+      menuItemsX = iconX + iconMenuItemPadding;
     }
     menuWidth = menuBorderRX - menuBorderLX;
   }
 
   private void drawTitle() throws IOException {
     String[] titleLines = model.getTitleLines(terminal.getWidth() < MIN_TERMINAL_WIDTH);
-    int topPadding = terminal.getHeight() / 5;
+    boolean shortTerminal = isTerminalShort();
+    int topPadding = getTopPadding(shortTerminal);
     int startY = topPadding;
 
-    int maxTitleLine = titleLines[0].length();
-    for (int i = 1; i < titleLines.length; i++) {
-      if (titleLines[i].length() > maxTitleLine) {
-        maxTitleLine = titleLines[i].length();
-      }
-    }
-
+    int maxTitleLine = getTitleLinesMaxLength() - 1;
     int borderTitlePadding = 2;
     int titleStartX = borderTitlePadding + menuBorderLX + ((menuWidth / 2) - (maxTitleLine / 2));
 
@@ -100,47 +141,80 @@ public class MenuRenderer {
       int y = startY + i;
       terminal.printAt(titleStartX, y, titleLines[i], TextColor.ANSI.YELLOW);
 
+      // draw secondLineBars only on our nice big ASCII art between the two words;
+      // RECIPE--CALCULATOR
+      // on the second line for
+      // an amazing, incredible 3D effect.
+
       if (i == 1 && titleLines[1].length() == 68) {
-        String secondLineBars = hbar.repeat(6);
-        int x = titleStartX + 43;
+        String secondLineBars = hbar.repeat(6); // This represents the space betw
+        int x = titleStartX + 43; // This number is hard-coded. That's just the way it is.
         terminal.printAt(x, y, secondLineBars, TextColor.ANSI.CYAN_BRIGHT);
       }
     }
   }
 
-  private void drawMenuBorder() throws IOException {
-    int topPadding = terminal.getHeight() / 5;
-    int startY = topPadding;
+  private void drawSkinnyTippyTopBorder() throws IOException {
+    terminal.printAt(menuBorderLX, menuStartY - model.getSmallTitleLinesHeight() - tippyTopBorderAdj,
+        tippyTopLeftBar + hbar.repeat(menuWidth - 1) + tippyTopRightBar, TextColor.ANSI.CYAN_BRIGHT);
+  }
 
-    // Tippy top
+  private void drawSkinnyTippyTopSideBorders() throws IOException {
+    for (int i = 0; i <= model.getSmallTitleLinesHeight() + 1; i++) {
+      terminal.printAt(menuBorderLX, startY + tippyTopBorderAdj - i, vbar, TextColor.ANSI.CYAN_BRIGHT);
+      terminal.printAt(menuBorderRX, startY + tippyTopBorderAdj - i, vbar, TextColor.ANSI.CYAN_BRIGHT);
+
+    }
+  }
+
+  private void drawTippyTopBorder() throws IOException {
     terminal.printAt(menuBorderLX, startY + 1,
         tippyTopLeftBar + hbar.repeat(menuWidth - 1) + tippyTopRightBar,
         TextColor.ANSI.CYAN_BRIGHT);
+  }
 
-    // Tippy top side borders
-    int tippyTopBorderAdj = 2;
+  private void drawTippyTopSideBorders() throws IOException {
     String[] titleLines = model.getTitleLines(terminal.getWidth() < MIN_TERMINAL_WIDTH);
     for (int i = 0; i <= titleLines.length; i++) {
       terminal.printAt(menuBorderLX, startY + tippyTopBorderAdj + i, vbar, TextColor.ANSI.CYAN_BRIGHT);
       terminal.printAt(menuBorderRX, startY + tippyTopBorderAdj + i, vbar, TextColor.ANSI.CYAN_BRIGHT);
     }
+  }
 
-    // Menu top border
+  private void drawMenuTopBorder() throws IOException {
     terminal.printAt(menuBorderLX, menuStartY - 1,
-        topLeftBar + hbar.repeat(menuWidth - 1) + topRightBar,
+        topLeftBar +
+            hbar.repeat(menuWidth - 1) + topRightBar,
         TextColor.ANSI.CYAN_BRIGHT);
+  }
 
-    // Side menu borders
+  private void drawMenuSideBorders() throws IOException {
     for (int i = 0; i <= model.getItemCount() * MENU_ITEM_INCREMENT; i++) {
       terminal.printAt(menuBorderLX, menuStartY + i, vbar, TextColor.ANSI.CYAN_BRIGHT);
       terminal.printAt(menuBorderRX, menuStartY + i, vbar, TextColor.ANSI.CYAN_BRIGHT);
     }
+  }
 
-    // Menu bottom border
+  private void drawMenuBottomBorder() throws IOException {
     int menuBorderBottomY = menuStartY + 1 + (model.getItemCount() * MENU_ITEM_INCREMENT);
     terminal.printAt(menuBorderLX, menuBorderBottomY,
         bottomLeftBar + hbar.repeat(menuWidth - 1) + bottomRightBar,
         TextColor.ANSI.CYAN_BRIGHT);
+  }
+
+  private void drawMenuBorder() throws IOException {
+    startY = topPadding;
+    boolean skinnyTerminal = isTerminalSkinny();
+    if (skinnyTerminal) {
+      drawSkinnyTippyTopBorder();
+      drawSkinnyTippyTopSideBorders();
+    } else {
+      drawTippyTopBorder();
+      drawTippyTopSideBorders();
+    }
+    drawMenuTopBorder();
+    drawMenuSideBorders();
+    drawMenuBottomBorder();
   }
 
   private void drawMenuItems() throws IOException {
@@ -174,7 +248,11 @@ public class MenuRenderer {
 
     String prompt = " Press a key for your choice: ";
     int promptLength = prompt.length();
-    int promptX = menuBorderLX + (menuWidth / 2) - (promptLength / 2);
+    // We need to use a double to adjust for potential odd menu-widths and
+    // promptlengths.
+    // Add 1 to adjust for the something- the 0.5 is so that we round up.
+    double promptXrounder = menuBorderLX + 1.5 + (menuWidth / 2) - (promptLength / 2);
+    int promptX = (int) promptXrounder;
 
     terminal.printAt(promptX, menuBorderBottomY, prompt, TextColor.ANSI.YELLOW);
     terminal.printAt(promptX, menuBorderBottomY + 1, "OR Press ENTER on your choice ", TextColor.ANSI.YELLOW);
@@ -193,10 +271,6 @@ public class MenuRenderer {
 
   private int centerX(String text) {
     return Math.max(0, (terminal.getWidth() - text.length()) / 2);
-  }
-
-  private int firstThirdX(String text) {
-    return Math.max(0, (terminal.getWidth() - text.length()) / 3);
   }
 
   private int centerX(int contentWidth) {
