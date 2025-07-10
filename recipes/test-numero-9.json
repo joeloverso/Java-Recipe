@@ -1,0 +1,16 @@
+{
+  "name" : "Test numero 9",
+  "slug" : "test-numero-9",
+  "servings" : 1.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Bones of my enemies",
+    "slug" : "bones-of-my-enemies",
+    "amount" : 10.0,
+    "unit" : "lbs",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "Yatzi!" ],
+  "created" : "2025-07-09T20:00:41.694933125Z"
+}

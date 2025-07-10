@@ -1,0 +1,80 @@
+{
+  "name" : "Chocolate Chip Cookies",
+  "slug" : "chocolate-chip-cookies",
+  "servings" : 24,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "All-purpose flour",
+    "slug" : "all-purpose-flour",
+    "amount" : 2.25,
+    "unit" : "cups",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Butter",
+    "slug" : "butter",
+    "amount" : 1.0,
+    "unit" : "cup",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Sugar",
+    "slug" : "sugar",
+    "amount" : 0.75,
+    "unit" : "cup",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Brown sugar",
+    "slug" : "brown-sugar",
+    "amount" : 0.75,
+    "unit" : "cup",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Eggs",
+    "slug" : "eggs",
+    "amount" : 2.0,
+    "unit" : "large",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Vanilla extract",
+    "slug" : "vanilla-extract",
+    "amount" : 2.0,
+    "unit" : "tsp",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Baking soda",
+    "slug" : "baking-soda",
+    "amount" : 1.0,
+    "unit" : "tsp",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Salt",
+    "slug" : "salt",
+    "amount" : 1.0,
+    "unit" : "tsp",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Chocolate chips",
+    "slug" : "chocolate-chips",
+    "amount" : 2.0,
+    "unit" : "cups",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "Preheat oven to 375°F (190°C).", "In a large bowl, cream together butter and both sugars until light and fluffy.", "Beat in eggs one at a time, then stir in vanilla.", "In a separate bowl, combine flour, baking soda, and salt.", "Gradually add dry ingredients to wet ingredients.", "Stir in chocolate chips.", "Drop rounded tablespoons of dough onto ungreased cookie sheets.", "Bake for 9-11 minutes or until golden brown.", "Cool on baking sheet for 2 minutes before removing to a wire rack." ],
+  "created" : "2025-07-08T21:52:14.914124953Z"
+}

@@ -1,0 +1,24 @@
+{
+  "name" : "Grandma's cookies",
+  "slug" : "grandmas-cookies",
+  "servings" : 4.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Flour",
+    "slug" : "flour",
+    "amount" : 3.0,
+    "unit" : "cups",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Sugar",
+    "slug" : "sugar",
+    "amount" : 5.0,
+    "unit" : "teaspoons",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "Grandma's love is an essential non-measurable ingredient." ],
+  "created" : "2025-07-09T13:59:20.957986404Z"
+}

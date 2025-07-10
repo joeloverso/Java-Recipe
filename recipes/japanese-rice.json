@@ -1,0 +1,40 @@
+{
+  "name" : "Japanese-rice",
+  "slug" : "japanese-rice",
+  "servings" : 1.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Rice",
+    "slug" : "rice",
+    "amount" : 1.0,
+    "unit" : "cups",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Water",
+    "slug" : "water",
+    "amount" : 1.2,
+    "unit" : "cups",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Rice vinegar",
+    "slug" : "rice-vinegar",
+    "amount" : 1.0,
+    "unit" : "Tablespoons",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Sugar",
+    "slug" : "sugar",
+    "amount" : 2.0,
+    "unit" : "teaspoons",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "See python program..." ],
+  "created" : "2025-07-09T17:48:42.334105596Z"
+}

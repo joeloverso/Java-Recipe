@@ -1,0 +1,16 @@
+{
+  "name" : "Dummy recipe a",
+  "slug" : "dummy-recipe-a",
+  "servings" : 2.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Blah",
+    "slug" : "blah",
+    "amount" : 2.0,
+    "unit" : "cups",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "Blah" ],
+  "created" : "2025-07-09T19:55:13.167055897Z"
+}

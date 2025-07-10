@@ -1,0 +1,16 @@
+{
+  "name" : "Master's soup",
+  "slug" : "masters-soup",
+  "servings" : 5.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Turtle",
+    "slug" : "turtle",
+    "amount" : 4.0,
+    "unit" : "hunks",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "To be served on the day of independence." ],
+  "created" : "2025-07-09T20:01:48.395976128Z"
+}

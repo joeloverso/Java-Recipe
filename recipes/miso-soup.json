@@ -1,0 +1,24 @@
+{
+  "name" : "Miso soup",
+  "slug" : "miso-soup",
+  "servings" : 1.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Water",
+    "slug" : "water",
+    "amount" : 1.0,
+    "unit" : "cup",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Miso paste",
+    "slug" : "miso-paste",
+    "amount" : 3.0,
+    "unit" : "Tablespoons",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "Don't worry about it." ],
+  "created" : "2025-07-09T17:46:52.749512911Z"
+}

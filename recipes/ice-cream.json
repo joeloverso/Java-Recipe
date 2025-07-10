@@ -1,0 +1,24 @@
+{
+  "name" : "Ice cream",
+  "slug" : "ice-cream",
+  "servings" : 2.0,
+  "ingredients" : [ {
+    "prime" : true,
+    "name" : "Ice",
+    "slug" : "ice",
+    "amount" : 2.0,
+    "unit" : "cups",
+    "isPrime" : true,
+    "scalingFactor" : 1.0
+  }, {
+    "prime" : false,
+    "name" : "Sugar",
+    "slug" : "sugar",
+    "amount" : 2.0,
+    "unit" : "Tablespoons",
+    "isPrime" : false,
+    "scalingFactor" : 1.0
+  } ],
+  "instructions" : [ "Ice + Cream you dingus" ],
+  "created" : "2025-07-09T17:54:31.161661816Z"
+}
